@@ -1,3 +1,6 @@
+source("1_omk_texts_list.R")
+source("2_omk_hands.R")
+
 library(readxl)
 
 codex_list <- paste0("http://omagyarkorpusz.nytud.hu/documents/kodexek/", codices, "/rmkinput")
@@ -28,7 +31,7 @@ for (i in seq_along(omk_parts_list)) {
   list1 <- map2(
     omk_text_list[[i]], 
     col_nms,
-      ~read_tsv(.x, col_names = .y, skip = 1) |> 
+      ~read_tsv(.x, col_names = .y, skip = 1, quote = "") |> 
       mutate(
         across(
           .cols = where(is.logical),
@@ -93,21 +96,18 @@ omk <- map2(
     ),
     id = ifelse(!is.na(sorszám), paste0(id, sorszám), id),
     sorszám = NULL,
+    betuhu = str_remove_all(betuhu, "\"") 
   ) |> 
   relocate(subcorpus, .before = id) |> 
   relocate(kez, .after = id) |> 
   relocate(sor, .after = oldal) |> 
   select(-starts_with("oldal_"), -kéz) 
 
-# write_tsv(omk, "C:/Users/Blaskovics Ákos/github/omk_maker/omk.tsv")
-omk <- read_tsv("C:/Users/Blaskovics Ákos/github/omk_maker/omk.tsv")
+# write_tsv(omk, "omk.tsv")
+# omk <- read_tsv("omk.tsv")
 
-codex_years <- read_excel("C:/Users/Blaskovics Ákos/github/omk_maker/codex_years.xlsx") |> 
+codex_years <- read_excel("codex_years.xlsx") |> 
   mutate(copy_avg = as.character(copy_avg))
 
-omk_years <-omk |> 
+omk_years <- omk |> 
   left_join(codex_years, by = join_by(id == kodex, kez, keletkezés == copy_avg))
-
-# readme
-#### aztán find_nelkul
-#### + manuálisan összevont szavak nélkül repo-ba külön behívása
